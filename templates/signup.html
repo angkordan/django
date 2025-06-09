@@ -1,0 +1,389 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<!-- Google tag (gtag.js) -->
+		<script
+			async
+			src="https://www.googletagmanager.com/gtag/js?id=G-2RFZJDB766"
+		></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+
+			gtag("config", "G-2RFZJDB766");
+		</script>
+
+		<title>Nuvia</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link
+			rel="stylesheet"
+			type="text/css"
+			href="https://nuviamusic.com/css/style.css"
+		/>
+
+		<link
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+			integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+			rel="stylesheet"
+		/>
+		<script src="{% static 'js/alpine.min.js' %}" defer></script>
+	</head>
+
+	<body id="root">
+		<style>
+			.wrapper {
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+				min-height: 100vh;
+				background-color: #fff;
+				position: relative;
+			}
+			.wrapper .banner-wrapper {
+				gap: 6px;
+				width: 100%;
+				background-color: #e71c1ccc;
+				background-image: url("/assets/img/auth-cover.jpg");
+				background-size: cover;
+				background-position: center;
+				z-index: 3;
+				border-bottom-right-radius: 100px;
+				padding: 20px 20px;
+				position: relative;
+			}
+			.wrapper .banner-wrapper a.logo {
+				position: absolute;
+				top: 10px;
+				right: 20px;
+			}
+			.wrapper .banner-wrapper a.logo img {
+				height: 30px;
+			}
+			.wrapper .banner-wrapper span {
+				display: block;
+				color: #fff;
+				font-size: 15px;
+				font-weight: 400;
+				margin-top: 30px;
+			}
+			.wrapper .banner-wrapper h2 {
+				font-size: 25px;
+				font-weight: 600;
+				color: #fff;
+				margin-top: 10px;
+			}
+			.form-wrapper {
+				display: flex;
+				margin: 0px auto;
+				flex-direction: column;
+				justify-content: center;
+				position: relative;
+				z-index: 3;
+				align-items: center;
+				padding: 20px 20px 20px 20px;
+				width: 100%;
+				max-width: 480px;
+			}
+			.form-wrapper form {
+				width: 100%;
+			}
+			.form-wrapper form .input-sec {
+				display: flex;
+				align-items: center;
+				margin-bottom: 20px;
+				width: 100%;
+				max-width: 480px;
+				gap: 8px;
+				padding: 0px 10px;
+				border-radius: 8px;
+				background-color: #e0e0e0;
+			}
+			.form-wrapper form .input-sec input,
+			.form-wrapper form .input-sec select {
+				flex: 1;
+				width: 100%;
+				height: 45px;
+				padding: 4px 10px;
+				background-color: transparent;
+				color: #0d0d0d;
+				border-radius: 4px;
+				border: none;
+			}
+			.form-wrapper form .h-6 {
+				height: 20px;
+			}
+			.form-wrapper form .button {
+				display: inline-block;
+				padding: 5px 10px;
+				border-radius: 5px;
+				width: auto;
+				font-size: 10px;
+				background-color: #a90610;
+			}
+			.form-wrapper form .row {
+				display: flex;
+				align-items: flex-end;
+				gap: 10px;
+				width: 100%;
+				max-width: 480px;
+			}
+			.form-wrapper form .row .input-sec {
+				flex: 1;
+				background-color: #0d0d0dcc;
+			}
+			.form-wrapper form .row .input-sec select {
+				color: #fff;
+			}
+			.form-wrapper form .get-token {
+				display: flex;
+				gap: 4px;
+				margin-top: -13px;
+				margin-bottom: 15px;
+			}
+			.form-wrapper form .get-token span {
+				font-size: 13px;
+				font-weight: 400;
+				color: #0d0d0d;
+			}
+			.form-wrapper form .get-token span:last-child {
+				color: #e71c1c;
+			}
+			.form-wrapper form .get-token a {
+				font-size: 13px;
+				font-weight: 400;
+				color: #e71c1c;
+			}
+			.form-wrapper form button {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				width: 100%;
+				border: none;
+				border-radius: 8px;
+				padding: 18px 0px;
+				font-size: 15px;
+				font-weight: 600;
+				color: #fff;
+				max-width: 480px;
+				cursor: pointer;
+				background-color: #e71c1c;
+			}
+			.form-wrapper form .terms {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin-bottom: 30px;
+			}
+			.form-wrapper form .terms label {
+				font-size: 14px;
+				font-weight: 400;
+				color: #0d0d0d;
+			}
+			.form-footer {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 10px;
+				padding: 0px 0px 40px 0px;
+			}
+			.form-footer .meta {
+				display: flex;
+				justify-content: center;
+				gap: 40px;
+			}
+			.form-footer .meta a {
+				display: flex;
+				justify-content: center;
+				gap: 20px;
+			}
+			.form-footer .meta a span {
+				font-size: 14px;
+				font-weight: 400;
+				color: #0d0d0d;
+			}
+			.form-footer .meta a span:last-child {
+				color: #e71c1c;
+				font-weight: 400;
+			}
+			@media screen and (min-width: 880px) {
+				.form-wrapper form {
+					position: static;
+					flex: 1;
+				}
+			}
+		</style>
+
+		<div class="wrapper">
+			<div class="banner-wrapper">
+				<a href="/" class="logo">
+					<img src="{% static 'images/logo-img.png' %}" alt="" />
+				</a>
+				<span>Welcome Back</span>
+				<h2>Sign Up</h2>
+			</div>
+
+			<div class="form-wrapper">
+				<form
+					class="form-container"
+					method="post"
+					action="{% url 'signup' %}"
+				>
+					{% csrf_token %}
+
+					<div class="input-sec">
+						<input
+							name="full_name"
+							type="text"
+							placeholder="Full Name"
+						/>
+					</div>
+
+					<div class="input-sec">
+						<input
+							name="user_email"
+							type="text"
+							placeholder="Email"
+						/>
+					</div>
+
+					<div class="input-sec">
+						<input
+							name="username"
+							type="text"
+							placeholder="Username"
+						/>
+					</div>
+
+					<div class="row">
+						<div class="input-sec">
+							<select name="" id="">
+								<option value="none">Gender</option>
+								<option value="male">Male</option>
+								<option value="female">Female</option>
+							</select>
+						</div>
+
+						<div class="input-sec">
+							<select name="" id="">
+								<option value="none">Genre</option>
+								<option value="Afrobeat">Afrobeat</option>
+								<option value="Highlife">Highlife</option>
+								<option value="Juju Music">Juju Music</option>
+								<option value="Fuji Music">Fuji Music</option>
+								<option value="Alte">Alte</option>
+								<option value="Nigerian Reggae">
+									Nigerian Reggae
+								</option>
+								<option value="Amapiano">Amapiano</option>
+								<option value="Gospel">Gospel</option>
+								<option value="Hiphop">Hiphop</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="input-sec">
+						<input
+							name="user_password"
+							:type="type"
+							placeholder="Enter password"
+						/>
+						<button
+							type="button"
+							x-text="type === 'password' ? 'Show' : 'Hide'"
+							x-on:click="type = type === 'password' ? 'text' : 'password'"
+							class="button"
+						></button>
+					</div>
+
+					<div class="row">
+						<div class="input-sec">
+							<select name="country" id="">
+								<option value="none">Country</option>
+								<option value="nigeria">Nigeria</option>
+								<option value="foreign">Foreign</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="input-sec">
+						<input
+							name="phone"
+							type="text"
+							placeholder="Phone Number"
+						/>
+					</div>
+
+					<div class="input-sec">
+						<input
+							name="code"
+							type="text"
+							placeholder="Promo Code"
+						/>
+					</div>
+
+					<!--
+					<div class="get-token">
+						<span>Dont Have N-coin?</span>
+						<a href="/coupon-vendors">Get N-coin</a>
+					</div>
+                    -->
+
+					<div class="row">
+						<div class="input-sec">
+							<select name="user_package" id="">
+								<option value="none">
+									Choose your package
+								</option>
+								<option value="basic">Basic Tier 7500</option>
+								<option value="premium">
+									Premium Tier 12500
+								</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="forgot-pass">
+						<div class="terms">
+							<input
+								id="terms"
+								type="checkbox"
+								name="terms"
+								id=""
+							/>
+							<label for="terms"
+								>I Agree with privacy and policy</label
+							>
+						</div>
+					</div>
+
+					<input
+						type="hidden"
+						name="nocsrf"
+						value="dd4d9843c8e45d5728c5e3503c4003909606ac00e473be0c6f2bbaf08d747f312293f2b45e976870cd97a63474905d66e599633c78d45178ca9a5fb8c6f6bd70"
+					/>
+
+					<button class="signup-btn">Sign Up</button>
+				</form>
+			</div>
+
+			<div class="form-footer">
+				<div class="meta">
+					<a href="/signin">
+						<span>Already got an account?</span>
+						<span>Sign In</span>
+					</a>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

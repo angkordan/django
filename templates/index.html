@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Nuvia Music</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link
+			rel="stylesheet"
+			type="text/css"
+			href="https://nuviamusic.com/css/style.css"
+		/>
+		<script>
+			const useFetch = async ({
+				customeUrl = "",
+				path,
+				method,
+				data,
+				headers = null,
+				contentType = "application/json",
+				responseType = "application/json",
+			}) => {
+				try {
+					const payload = {
+						method: method,
+						redirect: "manual",
+						headers: headers
+							? headers
+							: {
+									Accept: "application/json",
+							  },
+						body:
+							contentType == "application/json"
+								? JSON.stringify(data)
+								: data,
+					};
+
+					if (contentType == "application/json") {
+						payload.headers["Content-Type"] = "application/json";
+					}
+
+					const url = customeUrl
+						? customeUrl
+						: `https://nuviamusic.com${path}`;
+					const response = await fetch(url, payload);
+
+					if (response.status == 401) {
+						window.location.replace(
+							"https://nuviamusic.com/signin"
+						);
+						return;
+					}
+
+					const res = await response.json();
+					res.status_code = response.status;
+					return res;
+				} catch (err) {
+					throw err;
+				}
+			};
+
+			const loadSystemTheme = () => {
+				if (
+					window.matchMedia &&
+					window.matchMedia("(prefers-color-scheme: dark)").matches
+				) {
+					document.body.classList.add("dark-theme");
+					if (document.body.classList.contains("light-theme")) {
+						document.body.classList.remove("light-theme");
+					}
+				} else {
+					document.body.classList.add("light-theme");
+					if (document.body.classList.contains("dark-theme")) {
+						document.body.classList.remove("dark-theme");
+					}
+				}
+
+				window
+					.matchMedia("(prefers-color-scheme: dark)")
+					.addEventListener("change", (event) => {
+						const newColorScheme = event.matches ? "dark" : "light";
+
+						if (newColorScheme == "light") {
+							document.body.classList.add("light-theme");
+
+							if (
+								document.body.classList.contains("dark-theme")
+							) {
+								document.body.classList.remove("dark-theme");
+							}
+						}
+
+						if (newColorScheme == "dark") {
+							document.body.classList.add("dark-theme");
+
+							if (
+								document.body.classList.contains("light-theme")
+							) {
+								document.body.classList.remove("light-theme");
+							}
+						}
+					});
+			};
+
+			document.addEventListener("DOMContentLoaded", function (event) {
+				const theme_mode = localStorage.getItem("theme_mode");
+				if (theme_mode == "light") {
+					document.body.classList.add("light-theme");
+				}
+
+				if (theme_mode == "dark") {
+					document.body.classList.add("dark-theme");
+				}
+
+				if (theme_mode == "system") {
+					loadSystemTheme();
+				}
+			});
+
+			class MessageClass {
+				success(message, cb = () => {}) {
+					let wrapper;
+					let content;
+					if (document.querySelector(".lofty-message-wrapper")) {
+						wrapper = document.querySelector(
+							".lofty-message-wrapper"
+						);
+						content =
+							'<div class="lofty-message-box lofty-message-success"><i class="fa-regular fa-circle-check"></i><h2>Success</h2> <span>' +
+							message +
+							'</span><button class="lofty-close-msg-btn">close</button></div>';
+						wrapper.innerHTML = content;
+					} else {
+						const appWrapper = document.getElementById("root");
+						wrapper = document.createElement("div");
+						wrapper.classList.add("lofty-message-wrapper");
+						appWrapper.appendChild(wrapper);
+
+						content =
+							'<div class="lofty-message-box lofty-message-success"><i class="fa-regular fa-circle-check"></i><h2>Success</h2> <span>' +
+							message +
+							'</span><button class="lofty-close-msg-btn">close</button></div>';
+						wrapper.innerHTML = content;
+					}
+
+					if (
+						wrapper.classList.contains("lofty-message-wrapper-out")
+					) {
+						wrapper.classList.remove("lofty-message-wrapper-out");
+					}
+
+					wrapper.style.display = "flex";
+
+					const close_btn = document.querySelector(
+						".lofty-close-msg-btn"
+					);
+					close_btn.addEventListener("click", (e) => {
+						e.preventDefault();
+
+						wrapper.classList.add("lofty-message-wrapper-out");
+						setTimeout(() => {
+							wrapper.style.display = "none";
+							cb();
+						}, 250);
+					});
+				}
+
+				error(message, cb = () => {}) {
+					let wrapper;
+					let content;
+					let displayMessage = "An error occurred";
+					displayMessage = message;
+
+					if (document.querySelector(".lofty-message-wrapper")) {
+						wrapper = document.querySelector(
+							".lofty-message-wrapper"
+						);
+						content =
+							'<div class="lofty-message-box lofty-message-error"><i class="fa-regular fa-circle-xmark"></i><h2>Error</h2> <span>' +
+							displayMessage +
+							'</span><button class="lofty-close-msg-btn">close</button></div>';
+						wrapper.innerHTML = content;
+					} else {
+						const appWrapper = document.getElementById("root");
+						wrapper = document.createElement("div");
+						wrapper.classList.add("lofty-message-wrapper");
+						appWrapper.appendChild(wrapper);
+
+						content =
+							'<div class="lofty-message-box lofty-message-error"><i class="fa-regular fa-circle-xmark"></i><h2>Error</h2><span>' +
+							displayMessage +
+							'</span><button class="lofty-close-msg-btn">close</button></div>';
+						wrapper.innerHTML = content;
+					}
+
+					if (
+						wrapper.classList.contains("lofty-message-wrapper-out")
+					) {
+						wrapper.classList.remove("lofty-message-wrapper-out");
+					}
+
+					wrapper.style.display = "flex";
+
+					const close_btn = document.querySelector(
+						".lofty-close-msg-btn"
+					);
+					close_btn.addEventListener("click", (e) => {
+						e.preventDefault();
+
+						wrapper.classList.add("lofty-message-wrapper-out");
+
+						setTimeout(() => {
+							wrapper.style.display = "none";
+							cb();
+						}, 250);
+					});
+				}
+			}
+
+			const Message = new MessageClass();
+		</script>
+		<link
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+			integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+			rel="stylesheet"
+		/>
+
+		<script src="/js/alpine.min.js" defer></script>
+
+		<!-- Google tag (gtag.js) -->
+		<script
+			async
+			src="https://www.googletagmanager.com/gtag/js?id=G-2RFZJDB766"
+		></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+
+			gtag("config", "G-2RFZJDB766");
+		</script>
+	</head>
+
+	<body id="root">
+		<style>
+			.site-header {
+				display: flex;
+				flex-direction: column;
+				width: 100%;
+				background-color: transparent;
+				position: absolute;
+				z-index: 9999;
+				top: 0px;
+				left: 0px;
+			}
+			.site-header .top-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				position: absolute;
+				width: 100%;
+				height: 90px;
+				padding: 20px 8%;
+			}
+			.site-header .top-bar .logo img {
+				height: 30px;
+			}
+			.site-header .top-bar .logo h2 {
+				color: #fff;
+				font-size: 16px;
+				font-weight: 600;
+			}
+			.site-header .top-bar .toggle-menu {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-direction: column;
+				padding: 0px 8px;
+				width: 35px;
+				height: 35px;
+				cursor: pointer;
+			}
+			.site-header .top-bar .toggle-menu span,
+			.site-header .top-bar .toggle-menu::before,
+			.site-header .top-bar .toggle-menu::after {
+				content: "";
+				display: block;
+				width: 100%;
+				height: 1px;
+				background-color: #fff;
+			}
+			.site-header .top-bar .toggle-menu span {
+				margin: 4px 0px;
+			}
+			.site-header .top-bar .site-nav {
+				display: none;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+				height: 100vh;
+				z-index: 9999;
+			}
+			.site-header .top-bar .site-nav::before {
+				content: "";
+				display: block;
+				width: 100%;
+				height: 100%;
+				top: 0px;
+				left: 0px;
+				position: absolute;
+				background-color: #0006;
+				cursor: pointer;
+			}
+			.site-header .top-bar .site-nav nav {
+				position: relative;
+				width: 240px;
+				left: -240px;
+				background-image: url("/assets/img/dashboard/nav-overlay.png");
+				background-size: cover;
+				transition: all 0.5s ease-in-out;
+			}
+			.site-header .top-bar .site-nav nav .nav-logo {
+				padding: 20px 20px;
+			}
+			.site-header .top-bar .site-nav nav .nav-logo img {
+				height: 40px;
+			}
+			.site-header .top-bar .site-nav nav ul.auth-menu:last-child {
+				display: block;
+				gap: 20px;
+			}
+			.site-header .top-bar .site-nav nav ul.auth-menu:last-child li {
+				padding: 0px 20px;
+			}
+			.site-header .top-bar .site-nav nav ul.auth-menu:last-child li a {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 15px 20px;
+				border: 1px solid #fff;
+				color: #fff;
+				border-radius: 4px;
+				font-size: 12px;
+				font-weight: 500;
+				text-transform: uppercase;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.auth-menu:last-child
+				li:last-child {
+				margin-top: 15px;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.auth-menu:last-child
+				li:last-child
+				a {
+				border: none;
+				background-color: #fff;
+				color: #222;
+			}
+			.site-header .top-bar .site-nav nav ul.menu-links {
+				margin-bottom: 20px;
+			}
+			.site-header .top-bar .site-nav nav ul.menu-links li {
+				padding: 0px 20px;
+			}
+			.site-header .top-bar .site-nav nav ul.menu-links li a {
+				display: block;
+				font-size: 14px;
+				color: #fff;
+				font-weight: 400;
+				padding: 15px 0px;
+				text-transform: capitalize;
+				border-bottom: 0px solid #e1aead66;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.menu-links
+				li.sub-menu-wrapper {
+				position: relative;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.menu-links
+				li.sub-menu-wrapper
+				.sub-menu {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.menu-links
+				li.sub-menu-wrapper
+				.sub-menu
+				svg {
+				height: 8px;
+				transition: all 0.2s ease-in-out;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.menu-links
+				li.sub-menu-wrapper
+				.sub-menu-item {
+				display: none;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.menu-links
+				li.sub-menu-wrapper
+				.sub-menu-item
+				li
+				a {
+				padding: 10px 0px;
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.menu-links
+				.sub-menu-wrapper.active
+				.sub-menu
+				svg {
+				transform: rotate(-180deg);
+			}
+			.site-header
+				.top-bar
+				.site-nav
+				nav
+				ul.menu-links
+				.sub-menu-wrapper.active
+				.sub-menu-item {
+				display: flex;
+				flex-direction: column;
+			}
+			.site-header .actions {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				position: absolute;
+				left: 0px;
+				bottom: 20px;
+				width: 100%;
+			}
+			.site-header .actions a {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				width: 150px;
+				height: 45px;
+				border-radius: 8px;
+				font-size: 16px;
+				font-weight: 500;
+				background-color: var(--primary-color);
+				color: #fff;
+			}
+			.home-header {
+				background-color: var(--header-bg-color);
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar {
+					justify-self: unset;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .toggle-menu {
+					display: none;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav::before {
+					display: none;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav {
+					display: flex;
+					flex: 1;
+					position: unset;
+					background-color: unset;
+					height: unset;
+					width: unset;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav {
+					display: flex;
+					flex-direction: row;
+					background-image: unset;
+					justify-content: space-between;
+					flex: 1;
+					width: unset;
+					height: unset;
+					left: unset;
+				}
+				.site-header .top-bar .site-nav nav::before {
+					content: "";
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav .nav-logo {
+					display: none;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav ul.auth-menu {
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					justify-content: center;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav ul.auth-menu:last-child {
+					display: flex;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav ul.auth-menu:last-child li {
+					padding: unset;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header
+					.top-bar
+					.site-nav
+					nav
+					ul.auth-menu:last-child
+					li
+					a {
+					padding: 10px 20px;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header
+					.top-bar
+					.site-nav
+					nav
+					ul.auth-menu:last-child
+					li:last-child {
+					margin-top: 0px;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav ul.menu-links {
+					display: flex;
+					margin-bottom: 0px;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav ul.menu-links li {
+					padding: 0px;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header .top-bar .site-nav nav ul.menu-links li a {
+					display: flex;
+					flex-direction: row;
+					justify-content: center;
+					padding: 15px 20px;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header
+					.top-bar
+					.site-nav
+					nav
+					ul.menu-links
+					li.sub-menu-wrapper
+					.sub-menu {
+					gap: 10px;
+				}
+				.site-header
+					.top-bar
+					.site-nav
+					nav
+					ul.menu-links
+					li.sub-menu-wrapper
+					.sub-menu
+					span {
+					font-size: 13px;
+				}
+			}
+			@media screen and (min-width: 880px) {
+				.site-header
+					.top-bar
+					.site-nav
+					nav
+					ul.menu-links
+					li.sub-menu-wrapper
+					.sub-menu-item {
+					display: none;
+					flex-direction: column;
+					align-items: flex-start;
+					position: absolute;
+					left: 20px;
+				}
+				.site-header
+					.top-bar
+					.site-nav
+					nav
+					ul.menu-links
+					li.sub-menu-wrapper
+					.sub-menu-item
+					li
+					a {
+					padding: 4px 0px;
+				}
+			}
+		</style>
+
+		<header class="site-header home-header">
+			<div class="top-bar">
+				<a href="/" class="logo">
+					<img src="/assets/img/logo-img.png" alt="" />
+					<!-- <h2>Anchor It</h2> -->
+				</a>
+
+				<div class="site-nav">
+					<nav>
+						<a href="/" class="nav-logo">
+							<img src="/assets/img/logo-img.png" alt="" />
+						</a>
+
+						<ul class="menu-links">
+							<li><a href="/">HomePage</a></li>
+							<li><a href="/post/about-us">About Us</a></li>
+							<li class="sub-menu-wrapper">
+								<a class="sub-menu" href="#">
+									<span>Subscription</span>
+									<svg
+										class="sub-menu-indicator"
+										viewBox="0 0 13 8"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											d="M6.63735 5.06062L11.5871 0.110901L13.0013 1.52511L6.63735 7.88912L0.273438 1.52511L1.68765 0.110901L6.63735 5.06062Z"
+											fill="white"
+										/>
+									</svg>
+								</a>
+								<ul class="sub-menu-item">
+									<li><a href="/coupon">Authenticator</a></li>
+									<li>
+										<a href="/coupon-vendors">Subscribe</a>
+									</li>
+								</ul>
+							</li>
+							<li class="sub-menu-wrapper">
+								<a class="sub-menu" href="#">
+									<span>Pages</span>
+									<svg
+										class="sub-menu-indicator"
+										viewBox="0 0 13 8"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											d="M6.63735 5.06062L11.5871 0.110901L13.0013 1.52511L6.63735 7.88912L0.273438 1.52511L1.68765 0.110901L6.63735 5.06062Z"
+											fill="white"
+										/>
+									</svg>
+								</a>
+								<ul class="sub-menu-item">
+									<li>
+										<a href="/top-earners">Top Listeners</a>
+									</li>
+									<li>
+										<a href="/post/terms-of-service"
+											>Terms</a
+										>
+									</li>
+									<li>
+										<a href="/post/privacy-policy"
+											>Privacy</a
+										>
+									</li>
+								</ul>
+							</li>
+							<li><a href="/post/contact-us">Contact</a></li>
+						</ul>
+						<ul class="auth-menu">
+							<li><a href="{% url 'signin' %}">Login</a></li>
+							<li><a href="{% url 'signup' %}">Signup</a></li>
+						</ul>
+					</nav>
+				</div>
+
+				<div class="toggle-menu">
+					<span></span>
+				</div>
+			</div>
+		</header>
+
+		<script>
+			let toggleMenu = document.querySelector(".toggle-menu");
+			let menuBox = document.querySelector(".site-nav");
+
+			toggleMenu.addEventListener("click", () => {
+				menuBox.style.display = "flex";
+				setTimeout(() => {
+					menuBox.querySelector("nav").style.left = "0px";
+				}, 200);
+			});
+
+			menuBox.addEventListener("click", (e) => {
+				if (e.target == menuBox) {
+					menuBox.querySelector("nav").style.left = "-240px";
+					setTimeout(() => {
+						menuBox.style.display = "none";
+					}, 600);
+				}
+			});
+		</script>
+
+		<script>
+			const submenu_list = document.querySelectorAll(".sub-menu-wrapper");
+
+			submenu_list.forEach((item) => {
+				item.querySelector(".sub-menu").addEventListener(
+					"click",
+					(e) => {
+						e.preventDefault();
+
+						if (item.classList.contains("active")) {
+							item.classList.remove("active");
+						} else {
+							item.classList.add("active");
+						}
+					}
+				);
+			});
+		</script>
+		<div class="site-wrapper">
+			<!-- wrapper -->
+			<!-- container-->
+			<div class="container">
+				<style>
+					.home-page {
+						padding: 0px 0px 0px 0px;
+						position: relative;
+						background-color: #121212;
+					}
+					.home-page ul.slide-wrapper {
+						position: relative;
+						height: 790px;
+						overflow: hidden;
+					}
+					.home-page ul.slide-wrapper li {
+						display: none;
+						width: 100%;
+						height: 100%;
+						position: absolute;
+						top: 0px;
+						right: -100%;
+						transition: all 0.5s ease-in-out;
+						background-size: cover;
+						background-position: center;
+					}
+					.home-page ul.slide-wrapper li:first-child {
+						display: block;
+						right: 0px;
+						background-image: url("/assets/img/hero/hero-img-1.png");
+					}
+					.home-page ul.slide-wrapper li:nth-child(2) {
+						background-image: url("/assets/img/hero/hero-img-2.png");
+					}
+					.home-page ul.slide-wrapper li:nth-child(3) {
+						background-image: url("/assets/img/hero/hero-img-3.png");
+					}
+					.home-page .hero-wrapper {
+						padding: 150px 8% 200px 8%;
+					}
+					.home-page .hero-wrapper .hero-content {
+						display: flex;
+						flex-direction: column;
+						gap: 60px;
+						width: 100%;
+						max-width: 1080px;
+						margin: 0px auto;
+					}
+					.home-page .hero-wrapper .hero-content .text-content {
+						display: flex;
+						flex-direction: column;
+						max-width: 880px;
+						position: relative;
+						z-index: 2;
+					}
+					.home-page .hero-wrapper .hero-content .text-content h2 {
+						font-size: 50px;
+						font-weight: 700;
+						color: #fff;
+						margin-bottom: 10px;
+					}
+					.home-page .hero-wrapper .hero-content .text-content p {
+						font-size: 14px;
+						line-height: 22px;
+						font-weight: 400;
+						color: #ffffff;
+						margin-bottom: 20px;
+					}
+					.home-page .hero-wrapper .hero-content .text-content .meta {
+						display: flex;
+						gap: 20px;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.text-content
+						.meta
+						svg {
+						height: 20px;
+					}
+					.home-page .hero-wrapper .hero-content .action-content {
+						display: flex;
+						justify-content: center;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls {
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						gap: 20px;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.dot-wrapper {
+						display: flex;
+						flex-direction: column;
+						gap: 20px;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.dot-wrapper
+						span {
+						background-color: #e6e5e66e;
+						height: 8px;
+						width: 8px;
+						border-radius: 50%;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.dot-wrapper
+						span.active {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						border: 1.5px solid #ffffff;
+						height: 13px;
+						width: 13px;
+						background-color: transparent;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.dot-wrapper
+						span.active::before {
+						content: "";
+						width: 4px;
+						height: 4px;
+						background-color: #fff;
+						border-radius: 50%;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.horiz-indicator {
+						display: flex;
+						gap: 0px;
+						justify-content: center;
+						align-items: center;
+						width: 150px;
+						height: 1px;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.horiz-indicator
+						span {
+						flex: 1;
+						height: 1px;
+						background-color: #7b7e81;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.horiz-indicator
+						span.active {
+						background-color: #fff;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.bottom-controllers {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						gap: 20px;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.bottom-controllers
+						div
+						svg {
+						height: 10px;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.controlls
+						.bottom-controllers
+						span {
+						font-size: 14px;
+						font-weight: 400;
+						color: #fff;
+					}
+					.home-page
+						.hero-wrapper
+						.hero-content
+						.action-content
+						.actions
+						a {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						width: 84px;
+						height: 35px;
+						border-radius: 4px;
+						background-color: #fff;
+						color: #e71c1c;
+						font-size: 15px;
+						font-weight: 600;
+					}
+					.home-page .top-songs-wrapper {
+						padding: 30px 8% 30px 8%;
+					}
+					.home-page .top-songs-wrapper .top-songs-content {
+						width: 100%;
+						max-width: 1240px;
+						margin: 0px auto;
+					}
+					.home-page .top-songs-wrapper .top-songs-content h2 {
+						font-size: 26px;
+						font-weight: 700;
+						margin-bottom: 20px;
+						color: #ffffff;
+					}
+					.home-page .top-songs-wrapper .top-songs-content h2 span {
+						color: #eb1e1e;
+					}
+					.home-page
+						.top-songs-wrapper
+						.top-songs-content
+						.music-wrapper {
+						display: flex;
+						align-items: center;
+						gap: 20px;
+					}
+					.home-page
+						.top-songs-wrapper
+						.top-songs-content
+						.music-wrapper
+						.more {
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						gap: 8px;
+						margin-left: auto;
+					}
+					.home-page
+						.top-songs-wrapper
+						.top-songs-content
+						.music-wrapper
+						.more
+						.plus {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						width: 60px;
+						height: 60px;
+						border-radius: 50%;
+						background-color: #1e1e1e;
+					}
+					.home-page
+						.top-songs-wrapper
+						.top-songs-content
+						.music-wrapper
+						.more
+						span {
+						font-size: 14px;
+						font-weight: 600;
+						color: #fff;
+					}
+					.home-page .top-songs-wrapper .top-songs-content ul {
+						display: flex;
+						align-items: center;
+						gap: 15px;
+						flex: 1;
+						overflow-x: auto;
+					}
+					.home-page .top-songs-wrapper .top-songs-content ul li {
+						display: flex;
+						flex-direction: column;
+						gap: 5px;
+						flex: 1;
+						min-width: 150px;
+						max-width: 130px;
+						padding: 10px 10px;
+						border-radius: 8px;
+						background-color: #1f1f1f;
+					}
+					.home-page
+						.top-songs-wrapper
+						.top-songs-content
+						ul
+						li
+						.img-box {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						height: 100px;
+						overflow: hidden;
+						margin-bottom: 10px;
+					}
+					.home-page
+						.top-songs-wrapper
+						.top-songs-content
+						ul
+						li
+						.img-box
+						img {
+						object-fit: cover;
+						min-height: 100%;
+						min-width: 100%;
+					}
+					.home-page .top-songs-wrapper .top-songs-content ul li h4 {
+						font-size: 15px;
+						font-weight: 500;
+						color: #fff;
+					}
+					.home-page
+						.top-songs-wrapper
+						.top-songs-content
+						ul
+						li
+						span {
+						font-size: 11px;
+						font-weight: 300;
+						color: #fff;
+					}
+					.home-page .features-wrapper {
+						padding: 30px 8%;
+					}
+					.home-page .features-wrapper .features-content {
+						width: 100%;
+						max-width: 720px;
+						margin: 0px auto;
+					}
+					.home-page .features-wrapper .features-content .title {
+						margin: 0px auto;
+						margin-bottom: 30px;
+						width: fit-content;
+					}
+					.home-page .features-wrapper .features-content .title h2 {
+						font-size: 26px;
+						color: #fff;
+						margin-bottom: 20px;
+					}
+					.home-page
+						.features-wrapper
+						.features-content
+						.title
+						.bottom-dash {
+						display: flex;
+						height: 1px;
+						gap: 3px;
+					}
+					.home-page
+						.features-wrapper
+						.features-content
+						.title
+						.bottom-dash
+						span {
+						flex: 1;
+						height: 1px;
+						background-color: #8e8a8a;
+					}
+					.home-page
+						.features-wrapper
+						.features-content
+						.title
+						.bottom-dash
+						span:nth-child(2) {
+						background-color: #e64a4a;
+					}
+					.home-page .features-wrapper .features-content ul {
+						display: flex;
+						flex-wrap: wrap;
+						justify-content: center;
+						row-gap: 20px;
+					}
+					.home-page .features-wrapper .features-content ul li {
+						display: flex;
+						flex-direction: column;
+						gap: 20px;
+						color: #121212;
+						padding: 20px 40px 20px 20px;
+						border: 1px solid #f8f4f442;
+						width: 50%;
+					}
+					.home-page
+						.features-wrapper
+						.features-content
+						ul
+						li:last-child {
+						border: 1px solid #c56622;
+						background: linear-gradient(
+							135deg,
+							#5a5285 0%,
+							#15131f 100%
+						);
+					}
+					.home-page .features-wrapper .features-content ul li svg {
+						margin-bottom: 10px;
+					}
+					.home-page .features-wrapper .features-content ul li h4 {
+						font-size: 20px;
+						font-weight: 600;
+						color: #fff;
+						margin-bottom: 20px;
+					}
+					.home-page .features-wrapper .features-content ul li span {
+						color: #ffffff63;
+						font-size: 40px;
+						font-weight: 600;
+					}
+					.home-page .stream-wrapper {
+						padding: 30px 8%;
+						background-image: url("/assets/img/stream-overlay-img.png");
+						background-size: cover;
+					}
+					.home-page .stream-wrapper .stream-content {
+						display: flex;
+						flex-direction: column;
+						width: 100%;
+						max-width: 1240px;
+						margin: 0px auto;
+						gap: 40px;
+					}
+					.home-page .stream-wrapper .stream-content .img-wrapper {
+						max-width: 300px;
+					}
+					.home-page
+						.stream-wrapper
+						.stream-content
+						.img-wrapper
+						img {
+						width: 100%;
+					}
+					.home-page
+						.stream-wrapper
+						.stream-content
+						.text-content
+						h2 {
+						font-size: 39px;
+						font-weight: 600;
+						color: #fff;
+						margin-bottom: 20px;
+					}
+					.home-page
+						.stream-wrapper
+						.stream-content
+						.text-content
+						.tags-wrapper {
+						display: flex;
+						gap: 10px;
+						margin-bottom: 20px;
+					}
+					.home-page
+						.stream-wrapper
+						.stream-content
+						.text-content
+						.tags-wrapper
+						span {
+						padding: 8px 10px;
+						color: #fff;
+						white-space: nowrap;
+						font-size: 11px;
+						border: 1px solid #d4caca75;
+					}
+					.home-page .stream-wrapper .stream-content .text-content p {
+						font-size: 16px;
+						font-weight: 400;
+						color: #fff;
+						line-height: 25px;
+						margin-bottom: 20px;
+					}
+					.home-page .stream-wrapper .stream-content .text-content a {
+						display: inline-block;
+						padding: 10px 20px;
+						background-color: #e1e1e1;
+						color: #000;
+						font-size: 14px;
+						font-weight: 500;
+					}
+					.home-page .playlist-wrapper {
+						padding: 30px 8%;
+						overflow: hidden;
+						position: relative;
+						border: 0.26px solid #ffffff55;
+						border-left: none;
+						border-right: none;
+					}
+					.home-page .playlist-wrapper h5 {
+						font-size: 80px;
+						font-weight: 400;
+						color: #1f1e33b5;
+						position: absolute;
+						z-index: 3;
+						margin-top: -20px;
+						letter-spacing: 4px;
+					}
+					.home-page .playlist-wrapper .playlist-content {
+						display: flex;
+						flex-direction: column;
+						width: 100%;
+						max-width: 1240px;
+						margin: 0px auto;
+						gap: 20px;
+						position: relative;
+						z-index: 4;
+						top: 40px;
+					}
+					.home-page
+						.playlist-wrapper
+						.playlist-content
+						.text-content {
+						max-width: 480px;
+						margin: 0px auto;
+					}
+					.home-page
+						.playlist-wrapper
+						.playlist-content
+						.text-content
+						h2 {
+						color: #fff;
+						font-size: 30px;
+						font-weight: 600;
+						margin-bottom: 20px;
+					}
+					.home-page
+						.playlist-wrapper
+						.playlist-content
+						.text-content
+						.meta {
+						display: flex;
+						gap: 25px;
+						margin-bottom: 30px;
+					}
+					.home-page
+						.playlist-wrapper
+						.playlist-content
+						.text-content
+						.meta
+						svg {
+						height: 18px;
+					}
+					.home-page
+						.playlist-wrapper
+						.playlist-content
+						.text-content
+						span {
+						display: block;
+						color: #fff;
+						font-size: 14px;
+					}
+					.home-page .playlist-wrapper .playlist-content .stats {
+						display: flex;
+						flex-wrap: wrap;
+						gap: 10px;
+						margin-top: 20px;
+					}
+					.home-page .playlist-wrapper .playlist-content .stats span {
+						font-size: 50px;
+						font-weight: 700;
+						color: #1c1b2d;
+					}
+					.home-page
+						.playlist-wrapper
+						.playlist-content
+						.stats
+						span:nth-child(2) {
+						color: #eb1e1e94;
+					}
+					.home-page .faq-wrapper {
+						padding: 30px 8%;
+						background: linear-gradient(
+							50deg,
+							#6f2323 0%,
+							#121212 50%
+						);
+					}
+					.home-page .faq-wrapper .faq-content {
+						width: 100%;
+						max-width: 1240px;
+						margin: 0px auto;
+					}
+					.home-page .faq-wrapper .faq-content h2 {
+						font-size: 25px;
+						font-weight: 600;
+						color: #fff;
+						margin-bottom: 30px;
+						width: fit-content;
+						padding-right: 10px;
+						border-bottom: 2px solid #b9b7b7;
+					}
+					.home-page .faq-wrapper .faq-content h2 span {
+						color: #e71c1c;
+					}
+					.home-page .faq-wrapper .faq-content ul {
+						display: flex;
+						flex-direction: column;
+						gap: 20px;
+					}
+					.home-page .faq-wrapper .faq-content ul li {
+						display: flex;
+						align-items: flex-start;
+						gap: 4px;
+					}
+					.home-page .faq-wrapper .faq-content ul li b {
+						font-size: 14px;
+						font-weight: 400;
+						color: #fff;
+						margin-top: 3px;
+					}
+					.home-page .faq-wrapper .faq-content ul li .info h3 {
+						font-size: 18px;
+						font-weight: 600;
+						color: #fff;
+						cursor: pointer;
+					}
+					.home-page .faq-wrapper .faq-content ul li .info p {
+						display: none;
+						font-size: 15px;
+						font-weight: 400;
+						line-height: 19px;
+						padding-left: 4px;
+						color: #fff;
+						margin-top: 8px;
+						border-left: 0.5px solid #fff;
+					}
+					@media screen and (min-width: 880px) {
+						.home-page ul.slide-wrapper {
+							height: 720px;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .hero-wrapper .hero-content {
+							justify-content: space-between;
+							flex-direction: row;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page
+							.hero-wrapper
+							.hero-content
+							.text-content
+							h2 {
+							font-size: 60px;
+						}
+						.home-page .hero-wrapper .hero-content .text-content p {
+							margin-bottom: 50px;
+							max-width: 480px;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .top-songs-wrapper {
+							padding: 100px 8% 100px 8%;
+							border-bottom: 1px solid #ae9494;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .features-wrapper {
+							padding: 100px 8% 100px 8%;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .features-wrapper .features-content ul li {
+							max-width: 220px;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .stream-wrapper {
+							padding: 100px 8%;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .stream-wrapper .stream-content {
+							flex-direction: row;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page
+							.stream-wrapper
+							.stream-content
+							.img-wrapper {
+							max-width: 480px;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page
+							.stream-wrapper
+							.stream-content
+							.text-content {
+							max-width: 480px;
+						}
+						.home-page
+							.stream-wrapper
+							.stream-content
+							.text-content
+							h2 {
+							font-size: 40px;
+						}
+						.home-page
+							.stream-wrapper
+							.stream-content
+							.text-content
+							p {
+							font-size: 16px;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .playlist-wrapper {
+							padding: 100px 8%;
+						}
+					}
+					@media screen and (min-width: 880px) {
+						.home-page .playlist-wrapper h5 {
+							font-size: 150px;
+						}
+					}
+				</style>
+
+				<div class="home-page">
+					<!-- Hero Section -->
+					<ul class="slide-wrapper">
+						<li class="item-1 items">
+							<div class="hero-wrapper">
+								<div class="hero-content">
+									<div class="text-content">
+										<h2>
+											Daily vibes, <br />daily earnings!
+										</h2>
+										<p>
+											Nuvia is a music streaming platform
+											focused on music promotion and
+											listener rewards.
+										</p>
+
+										<div class="meta">
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M3 20.5263H27V3.15789H3V20.5263ZM16.5 23.6842V26.8421H22.5V30H7.5V26.8421H13.5V23.6842H1.4877C0.666075 23.6842 0 22.9754 0 22.0934V1.59076C0 0.712216 0.682965 0 1.4877 0H28.5123C29.334 0 30 0.708821 30 1.59076V22.0934C30 22.9719 29.317 23.6842 28.5123 23.6842H16.5Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 30C6.71572 30 0 23.2842 0 15C0 6.71572 6.71572 0 15 0C23.2842 0 30 6.71572 30 15C30 23.2842 23.2842 30 15 30ZM15 27C21.6275 27 27 21.6275 27 15C27 8.37258 21.6275 3 15 3C8.37258 3 3 8.37258 3 15C3 21.6275 8.37258 27 15 27ZM12.9328 9.62189L20.2512 14.5008C20.5269 14.6846 20.6014 15.0571 20.4175 15.3328C20.3736 15.3987 20.3171 15.4552 20.2512 15.4992L12.9328 20.3781C12.6571 20.562 12.2845 20.4874 12.1008 20.2118C12.0351 20.1132 12 19.9974 12 19.8789V10.1211C12 9.78973 12.2686 9.52112 12.6 9.52112C12.7185 9.52112 12.8343 9.55617 12.9328 9.62189Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 2.85714C12.4659 2.85714 10.4118 4.77593 10.4118 7.14286V15.7143C10.4118 18.0813 12.4659 20 15 20C17.5339 20 19.5882 18.0813 19.5882 15.7143V7.14286C19.5882 4.77593 17.5339 2.85714 15 2.85714ZM15 0C19.2233 0 22.6471 3.19797 22.6471 7.14286V15.7143C22.6471 19.6591 19.2233 22.8571 15 22.8571C10.7766 22.8571 7.35294 19.6591 7.35294 15.7143V7.14286C7.35294 3.19797 10.7766 0 15 0ZM0 18.5164L3 17.956C4.11538 23.1944 9.06404 27.1429 15 27.1429C20.936 27.1429 25.8845 23.1944 26.9999 17.956L30 18.5164C28.6056 25.0646 22.4199 30 15 30C7.58006 30 1.39424 25.0646 0 18.5164Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 10.5C12.5139 10.5 10.5 12.5147 10.5 15C10.5 17.486 12.5147 19.5 15 19.5C17.486 19.5 19.5 17.4853 19.5 15C19.5 12.514 17.4854 10.5 15 10.5ZM15 7.5C19.1406 7.5 22.5 10.8556 22.5 15C22.5 19.1408 19.1444 22.5 15 22.5C10.8593 22.5 7.49999 19.1444 7.49999 15C7.49999 10.8593 10.8556 7.5 15 7.5ZM24.75 7.12372C24.75 8.15889 23.9088 8.99875 22.875 8.99875C21.8399 8.99875 21 8.1576 21 7.12372C21 6.08985 21.8411 5.25 22.875 5.25C23.9075 5.24869 24.75 6.08985 24.75 7.12372ZM15 3C11.2883 3 10.6833 3.00982 8.95693 3.0867C7.78075 3.14191 6.99232 3.3001 6.25976 3.5845C5.60876 3.83698 5.13916 4.13847 4.63881 4.63882C4.13653 5.1411 3.83559 5.60945 3.58413 6.26075C3.29907 6.99498 3.14092 7.78217 3.0867 8.95673C3.00907 10.6128 3 11.1916 3 15C3 18.7118 3.00982 19.3167 3.08668 21.0429C3.14193 22.2186 3.30033 23.0082 3.58404 23.739C3.83718 24.3909 4.13928 24.8616 4.63722 25.3596C5.14147 25.8632 5.61121 26.1651 6.25633 26.4141C6.99781 26.7008 7.78574 26.8591 8.9567 26.9133C10.6128 26.9909 11.1916 27 15 27C18.7118 27 19.3167 26.9901 21.0429 26.9133C22.2161 26.8582 23.0063 26.6994 23.739 26.4159C24.3891 26.1634 24.8613 25.8603 25.3596 25.3628C25.8639 24.8577 26.1653 24.3891 26.4146 23.7425C26.7005 23.0037 26.8592 22.2147 26.9133 21.0434C26.9909 19.3872 27 18.8083 27 15C27 11.2883 26.9901 10.6833 26.9133 8.95706C26.8581 7.78359 26.6993 6.99224 26.4155 6.25977C26.1636 5.61057 25.8611 5.13952 25.3611 4.63882C24.858 4.13572 24.3909 3.8354 23.7392 3.58413C23.0055 3.29931 22.2171 3.14094 21.0432 3.08671C19.3872 3.00907 18.8084 3 15 3ZM15 0C19.0749 0 19.5837 0.0149999 21.1838 0.0899999C22.7799 0.163755 23.8688 0.41625 24.825 0.7875C25.8137 1.16876 26.6487 1.68375 27.4824 2.51749C28.3149 3.35125 28.83 4.18875 29.2125 5.175C29.5824 6.13 29.835 7.22 29.91 8.81625C29.9813 10.4163 30 10.925 30 15C30 19.0751 29.985 19.5837 29.91 21.1838C29.8362 22.78 29.5824 23.8687 29.2125 24.825C28.8312 25.8138 28.3149 26.6487 27.4824 27.4825C26.6487 28.315 25.8099 28.83 24.825 29.2125C23.8688 29.5826 22.7799 29.835 21.1838 29.91C19.5837 29.9813 19.0749 30 15 30C10.925 30 10.4162 29.985 8.81624 29.91C7.21999 29.8362 6.13249 29.5826 5.175 29.2125C4.18749 28.8312 3.35124 28.315 2.51749 27.4825C1.68375 26.6487 1.17 25.81 0.787499 24.825C0.41625 23.8687 0.165 22.78 0.0900002 21.1838C0.0187503 19.5837 0 19.0751 0 15C0 10.925 0.0150003 10.4163 0.0900002 8.81625C0.16374 7.21875 0.41625 6.13125 0.787499 5.175C1.16874 4.1875 1.68375 3.35125 2.51749 2.51749C3.35124 1.68375 4.18875 1.17 5.175 0.7875C6.13124 0.41625 7.21874 0.165 8.81624 0.0899999C10.4162 0.0187499 10.925 0 15 0Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+										</div>
+									</div>
+
+									<div class="action-content">
+										<div class="controlls">
+											<div class="dot-wrapper">
+												<span class="active"></span>
+												<span></span>
+												<span></span>
+											</div>
+
+											<div class="horiz-indicator">
+												<span class="active"></span>
+												<span></span>
+												<span></span>
+											</div>
+
+											<div class="bottom-controllers">
+												<div class="prev">
+													<svg
+														viewBox="0 0 13 8"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															d="M6.63735 2.93924L1.68765 7.88904L0.273438 6.47484L6.63735 0.11084L13.0013 6.47484L11.5871 7.88904L6.63735 2.93924Z"
+															fill="#8B8A8D"
+														/>
+													</svg>
+												</div>
+												<span>01</span>
+												<div class="next">
+													<svg
+														viewBox="0 0 13 8"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															d="M6.36391 5.06056L11.3137 0.11084L12.7279 1.52505L6.36391 7.88906L0 1.52505L1.41421 0.11084L6.36391 5.06056Z"
+															fill="#8B8A8D"
+														/>
+													</svg>
+												</div>
+											</div>
+
+											<div class="actions">
+												<a href="/signup">Sign Up</a>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</li>
+
+						<li class="item-2 items">
+							<div class="hero-wrapper">
+								<div class="hero-content">
+									<div class="text-content">
+										<h2>
+											Turning playlists <br />
+											into profits
+										</h2>
+										<p>
+											Nuvia is a music streaming platform
+											focused on music promotion and
+											listener rewards.
+										</p>
+
+										<div class="meta">
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M3 20.5263H27V3.15789H3V20.5263ZM16.5 23.6842V26.8421H22.5V30H7.5V26.8421H13.5V23.6842H1.4877C0.666075 23.6842 0 22.9754 0 22.0934V1.59076C0 0.712216 0.682965 0 1.4877 0H28.5123C29.334 0 30 0.708821 30 1.59076V22.0934C30 22.9719 29.317 23.6842 28.5123 23.6842H16.5Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 30C6.71572 30 0 23.2842 0 15C0 6.71572 6.71572 0 15 0C23.2842 0 30 6.71572 30 15C30 23.2842 23.2842 30 15 30ZM15 27C21.6275 27 27 21.6275 27 15C27 8.37258 21.6275 3 15 3C8.37258 3 3 8.37258 3 15C3 21.6275 8.37258 27 15 27ZM12.9328 9.62189L20.2512 14.5008C20.5269 14.6846 20.6014 15.0571 20.4175 15.3328C20.3736 15.3987 20.3171 15.4552 20.2512 15.4992L12.9328 20.3781C12.6571 20.562 12.2845 20.4874 12.1008 20.2118C12.0351 20.1132 12 19.9974 12 19.8789V10.1211C12 9.78973 12.2686 9.52112 12.6 9.52112C12.7185 9.52112 12.8343 9.55617 12.9328 9.62189Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 2.85714C12.4659 2.85714 10.4118 4.77593 10.4118 7.14286V15.7143C10.4118 18.0813 12.4659 20 15 20C17.5339 20 19.5882 18.0813 19.5882 15.7143V7.14286C19.5882 4.77593 17.5339 2.85714 15 2.85714ZM15 0C19.2233 0 22.6471 3.19797 22.6471 7.14286V15.7143C22.6471 19.6591 19.2233 22.8571 15 22.8571C10.7766 22.8571 7.35294 19.6591 7.35294 15.7143V7.14286C7.35294 3.19797 10.7766 0 15 0ZM0 18.5164L3 17.956C4.11538 23.1944 9.06404 27.1429 15 27.1429C20.936 27.1429 25.8845 23.1944 26.9999 17.956L30 18.5164C28.6056 25.0646 22.4199 30 15 30C7.58006 30 1.39424 25.0646 0 18.5164Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 10.5C12.5139 10.5 10.5 12.5147 10.5 15C10.5 17.486 12.5147 19.5 15 19.5C17.486 19.5 19.5 17.4853 19.5 15C19.5 12.514 17.4854 10.5 15 10.5ZM15 7.5C19.1406 7.5 22.5 10.8556 22.5 15C22.5 19.1408 19.1444 22.5 15 22.5C10.8593 22.5 7.49999 19.1444 7.49999 15C7.49999 10.8593 10.8556 7.5 15 7.5ZM24.75 7.12372C24.75 8.15889 23.9088 8.99875 22.875 8.99875C21.8399 8.99875 21 8.1576 21 7.12372C21 6.08985 21.8411 5.25 22.875 5.25C23.9075 5.24869 24.75 6.08985 24.75 7.12372ZM15 3C11.2883 3 10.6833 3.00982 8.95693 3.0867C7.78075 3.14191 6.99232 3.3001 6.25976 3.5845C5.60876 3.83698 5.13916 4.13847 4.63881 4.63882C4.13653 5.1411 3.83559 5.60945 3.58413 6.26075C3.29907 6.99498 3.14092 7.78217 3.0867 8.95673C3.00907 10.6128 3 11.1916 3 15C3 18.7118 3.00982 19.3167 3.08668 21.0429C3.14193 22.2186 3.30033 23.0082 3.58404 23.739C3.83718 24.3909 4.13928 24.8616 4.63722 25.3596C5.14147 25.8632 5.61121 26.1651 6.25633 26.4141C6.99781 26.7008 7.78574 26.8591 8.9567 26.9133C10.6128 26.9909 11.1916 27 15 27C18.7118 27 19.3167 26.9901 21.0429 26.9133C22.2161 26.8582 23.0063 26.6994 23.739 26.4159C24.3891 26.1634 24.8613 25.8603 25.3596 25.3628C25.8639 24.8577 26.1653 24.3891 26.4146 23.7425C26.7005 23.0037 26.8592 22.2147 26.9133 21.0434C26.9909 19.3872 27 18.8083 27 15C27 11.2883 26.9901 10.6833 26.9133 8.95706C26.8581 7.78359 26.6993 6.99224 26.4155 6.25977C26.1636 5.61057 25.8611 5.13952 25.3611 4.63882C24.858 4.13572 24.3909 3.8354 23.7392 3.58413C23.0055 3.29931 22.2171 3.14094 21.0432 3.08671C19.3872 3.00907 18.8084 3 15 3ZM15 0C19.0749 0 19.5837 0.0149999 21.1838 0.0899999C22.7799 0.163755 23.8688 0.41625 24.825 0.7875C25.8137 1.16876 26.6487 1.68375 27.4824 2.51749C28.3149 3.35125 28.83 4.18875 29.2125 5.175C29.5824 6.13 29.835 7.22 29.91 8.81625C29.9813 10.4163 30 10.925 30 15C30 19.0751 29.985 19.5837 29.91 21.1838C29.8362 22.78 29.5824 23.8687 29.2125 24.825C28.8312 25.8138 28.3149 26.6487 27.4824 27.4825C26.6487 28.315 25.8099 28.83 24.825 29.2125C23.8688 29.5826 22.7799 29.835 21.1838 29.91C19.5837 29.9813 19.0749 30 15 30C10.925 30 10.4162 29.985 8.81624 29.91C7.21999 29.8362 6.13249 29.5826 5.175 29.2125C4.18749 28.8312 3.35124 28.315 2.51749 27.4825C1.68375 26.6487 1.17 25.81 0.787499 24.825C0.41625 23.8687 0.165 22.78 0.0900002 21.1838C0.0187503 19.5837 0 19.0751 0 15C0 10.925 0.0150003 10.4163 0.0900002 8.81625C0.16374 7.21875 0.41625 6.13125 0.787499 5.175C1.16874 4.1875 1.68375 3.35125 2.51749 2.51749C3.35124 1.68375 4.18875 1.17 5.175 0.7875C6.13124 0.41625 7.21874 0.165 8.81624 0.0899999C10.4162 0.0187499 10.925 0 15 0Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+										</div>
+									</div>
+
+									<div class="action-content">
+										<div class="controlls">
+											<div class="dot-wrapper">
+												<span></span>
+												<span class="active"></span>
+												<span></span>
+											</div>
+
+											<div class="horiz-indicator">
+												<span></span>
+												<span class="active"></span>
+												<span></span>
+											</div>
+
+											<div class="bottom-controllers">
+												<div class="prev">
+													<svg
+														viewBox="0 0 13 8"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															d="M6.63735 2.93924L1.68765 7.88904L0.273438 6.47484L6.63735 0.11084L13.0013 6.47484L11.5871 7.88904L6.63735 2.93924Z"
+															fill="#8B8A8D"
+														/>
+													</svg>
+												</div>
+												<span>02</span>
+												<div class="next">
+													<svg
+														viewBox="0 0 13 8"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															d="M6.36391 5.06056L11.3137 0.11084L12.7279 1.52505L6.36391 7.88906L0 1.52505L1.41421 0.11084L6.36391 5.06056Z"
+															fill="#8B8A8D"
+														/>
+													</svg>
+												</div>
+											</div>
+
+											<div class="actions">
+												<a href="/signup">Sign Up</a>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</li>
+
+						<li class="item-3 items">
+							<div class="hero-wrapper">
+								<div class="hero-content">
+									<div class="text-content">
+										<h2 style="font-size: 40px">
+											Daily entertainment, <br />daily
+											revenue payments
+										</h2>
+										<p>
+											Nuvia is a music streaming platform
+											focused on music promotion and
+											listener rewards.
+										</p>
+
+										<div class="meta">
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M3 20.5263H27V3.15789H3V20.5263ZM16.5 23.6842V26.8421H22.5V30H7.5V26.8421H13.5V23.6842H1.4877C0.666075 23.6842 0 22.9754 0 22.0934V1.59076C0 0.712216 0.682965 0 1.4877 0H28.5123C29.334 0 30 0.708821 30 1.59076V22.0934C30 22.9719 29.317 23.6842 28.5123 23.6842H16.5Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 30C6.71572 30 0 23.2842 0 15C0 6.71572 6.71572 0 15 0C23.2842 0 30 6.71572 30 15C30 23.2842 23.2842 30 15 30ZM15 27C21.6275 27 27 21.6275 27 15C27 8.37258 21.6275 3 15 3C8.37258 3 3 8.37258 3 15C3 21.6275 8.37258 27 15 27ZM12.9328 9.62189L20.2512 14.5008C20.5269 14.6846 20.6014 15.0571 20.4175 15.3328C20.3736 15.3987 20.3171 15.4552 20.2512 15.4992L12.9328 20.3781C12.6571 20.562 12.2845 20.4874 12.1008 20.2118C12.0351 20.1132 12 19.9974 12 19.8789V10.1211C12 9.78973 12.2686 9.52112 12.6 9.52112C12.7185 9.52112 12.8343 9.55617 12.9328 9.62189Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 2.85714C12.4659 2.85714 10.4118 4.77593 10.4118 7.14286V15.7143C10.4118 18.0813 12.4659 20 15 20C17.5339 20 19.5882 18.0813 19.5882 15.7143V7.14286C19.5882 4.77593 17.5339 2.85714 15 2.85714ZM15 0C19.2233 0 22.6471 3.19797 22.6471 7.14286V15.7143C22.6471 19.6591 19.2233 22.8571 15 22.8571C10.7766 22.8571 7.35294 19.6591 7.35294 15.7143V7.14286C7.35294 3.19797 10.7766 0 15 0ZM0 18.5164L3 17.956C4.11538 23.1944 9.06404 27.1429 15 27.1429C20.936 27.1429 25.8845 23.1944 26.9999 17.956L30 18.5164C28.6056 25.0646 22.4199 30 15 30C7.58006 30 1.39424 25.0646 0 18.5164Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+											<svg
+												width="30"
+												height="30"
+												viewBox="0 0 30 30"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M15 10.5C12.5139 10.5 10.5 12.5147 10.5 15C10.5 17.486 12.5147 19.5 15 19.5C17.486 19.5 19.5 17.4853 19.5 15C19.5 12.514 17.4854 10.5 15 10.5ZM15 7.5C19.1406 7.5 22.5 10.8556 22.5 15C22.5 19.1408 19.1444 22.5 15 22.5C10.8593 22.5 7.49999 19.1444 7.49999 15C7.49999 10.8593 10.8556 7.5 15 7.5ZM24.75 7.12372C24.75 8.15889 23.9088 8.99875 22.875 8.99875C21.8399 8.99875 21 8.1576 21 7.12372C21 6.08985 21.8411 5.25 22.875 5.25C23.9075 5.24869 24.75 6.08985 24.75 7.12372ZM15 3C11.2883 3 10.6833 3.00982 8.95693 3.0867C7.78075 3.14191 6.99232 3.3001 6.25976 3.5845C5.60876 3.83698 5.13916 4.13847 4.63881 4.63882C4.13653 5.1411 3.83559 5.60945 3.58413 6.26075C3.29907 6.99498 3.14092 7.78217 3.0867 8.95673C3.00907 10.6128 3 11.1916 3 15C3 18.7118 3.00982 19.3167 3.08668 21.0429C3.14193 22.2186 3.30033 23.0082 3.58404 23.739C3.83718 24.3909 4.13928 24.8616 4.63722 25.3596C5.14147 25.8632 5.61121 26.1651 6.25633 26.4141C6.99781 26.7008 7.78574 26.8591 8.9567 26.9133C10.6128 26.9909 11.1916 27 15 27C18.7118 27 19.3167 26.9901 21.0429 26.9133C22.2161 26.8582 23.0063 26.6994 23.739 26.4159C24.3891 26.1634 24.8613 25.8603 25.3596 25.3628C25.8639 24.8577 26.1653 24.3891 26.4146 23.7425C26.7005 23.0037 26.8592 22.2147 26.9133 21.0434C26.9909 19.3872 27 18.8083 27 15C27 11.2883 26.9901 10.6833 26.9133 8.95706C26.8581 7.78359 26.6993 6.99224 26.4155 6.25977C26.1636 5.61057 25.8611 5.13952 25.3611 4.63882C24.858 4.13572 24.3909 3.8354 23.7392 3.58413C23.0055 3.29931 22.2171 3.14094 21.0432 3.08671C19.3872 3.00907 18.8084 3 15 3ZM15 0C19.0749 0 19.5837 0.0149999 21.1838 0.0899999C22.7799 0.163755 23.8688 0.41625 24.825 0.7875C25.8137 1.16876 26.6487 1.68375 27.4824 2.51749C28.3149 3.35125 28.83 4.18875 29.2125 5.175C29.5824 6.13 29.835 7.22 29.91 8.81625C29.9813 10.4163 30 10.925 30 15C30 19.0751 29.985 19.5837 29.91 21.1838C29.8362 22.78 29.5824 23.8687 29.2125 24.825C28.8312 25.8138 28.3149 26.6487 27.4824 27.4825C26.6487 28.315 25.8099 28.83 24.825 29.2125C23.8688 29.5826 22.7799 29.835 21.1838 29.91C19.5837 29.9813 19.0749 30 15 30C10.925 30 10.4162 29.985 8.81624 29.91C7.21999 29.8362 6.13249 29.5826 5.175 29.2125C4.18749 28.8312 3.35124 28.315 2.51749 27.4825C1.68375 26.6487 1.17 25.81 0.787499 24.825C0.41625 23.8687 0.165 22.78 0.0900002 21.1838C0.0187503 19.5837 0 19.0751 0 15C0 10.925 0.0150003 10.4163 0.0900002 8.81625C0.16374 7.21875 0.41625 6.13125 0.787499 5.175C1.16874 4.1875 1.68375 3.35125 2.51749 2.51749C3.35124 1.68375 4.18875 1.17 5.175 0.7875C6.13124 0.41625 7.21874 0.165 8.81624 0.0899999C10.4162 0.0187499 10.925 0 15 0Z"
+													fill="#E6E5E6"
+												/>
+											</svg>
+										</div>
+									</div>
+
+									<div class="action-content">
+										<div class="controlls">
+											<div class="dot-wrapper">
+												<span></span>
+												<span></span>
+												<span class="active"></span>
+											</div>
+
+											<div class="horiz-indicator">
+												<span></span>
+												<span></span>
+												<span class="active"></span>
+											</div>
+
+											<div class="bottom-controllers">
+												<div class="prev">
+													<svg
+														viewBox="0 0 13 8"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															d="M6.63735 2.93924L1.68765 7.88904L0.273438 6.47484L6.63735 0.11084L13.0013 6.47484L11.5871 7.88904L6.63735 2.93924Z"
+															fill="#8B8A8D"
+														/>
+													</svg>
+												</div>
+												<span>03</span>
+												<div class="next">
+													<svg
+														viewBox="0 0 13 8"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															d="M6.36391 5.06056L11.3137 0.11084L12.7279 1.52505L6.36391 7.88906L0 1.52505L1.41421 0.11084L6.36391 5.06056Z"
+															fill="#8B8A8D"
+														/>
+													</svg>
+												</div>
+											</div>
+
+											<div class="actions">
+												<a href="/signup">Sign Up</a>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</li>
+					</ul>
+
+					<!-- Top Songs Section -->
+					<div class="top-songs-wrapper">
+						<div class="top-songs-content">
+							<h2>Top <span>Songs</span></h2>
+
+							<div class="music-wrapper">
+								<ul class="no-scrollbar">
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/6844ed3dbf6182.77113708.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Only You Satisfy</h4>
+											<span>Mercy Chinwo</span>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/68451cc67d1729.05279353.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>More Than Enough</h4>
+											<span>Mercy Chinwo</span>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/68452176c86183.26948222.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Remember</h4>
+											<span>SINACH</span>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/68452163d080c8.42926931.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Great God</h4>
+											<span>Joe Praize ft. Sinach</span>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/68452303882300.06516082.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Winning</h4>
+											<span>Sinach</span>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/684523cd36d419.51476577.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Ifesinachi</h4>
+											<span>DNA</span>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/684526892aa818.23374677.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Testify</h4>
+											<span
+												>Moses Bliss Ft. The
+												membrane</span
+											>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/684527b3d59f92.95700444.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Carry Am Go</h4>
+											<span>Moses Bliss </span>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/684529641c6f00.10034850.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>Your Love</h4>
+											<span
+												>Moses Bliss Ft. Chandler
+												Moore</span
+											>
+										</a>
+									</li>
+									<li>
+										<a href="#">
+											<div class="img-box">
+												<img
+													src="/assets/files/img/68452c49346189.72072661.jpeg"
+													alt=""
+												/>
+											</div>
+											<h4>The One You Love</h4>
+											<span>Minister GUC </span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+
+					<!-- Top Songs Section -->
+					<div class="features-wrapper">
+						<div class="features-content">
+							<div class="title">
+								<h2>Our Features</h2>
+								<div class="bottom-dash">
+									<span></span>
+									<span></span>
+									<span></span>
+								</div>
+							</div>
+
+							<ul>
+								<li>
+									<a href="#">
+										<svg
+											width="20"
+											height="19"
+											viewBox="0 0 20 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z"
+												fill="#D9D9D9"
+												fill-opacity="0.48"
+											/>
+										</svg>
+
+										<h4>Streaming <br />hub</h4>
+										<span>01</span>
+									</a>
+								</li>
+								<li>
+									<a href="#">
+										<svg
+											width="20"
+											height="19"
+											viewBox="0 0 20 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z"
+												fill="#D9D9D9"
+												fill-opacity="0.48"
+											/>
+										</svg>
+
+										<h4>Music <br />Promotion</h4>
+										<span>02</span>
+									</a>
+								</li>
+								<li>
+									<a href="#">
+										<svg
+											width="20"
+											height="19"
+											viewBox="0 0 20 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z"
+												fill="#D9D9D9"
+												fill-opacity="0.48"
+											/>
+										</svg>
+
+										<h4>Artist <br />Collaboration</h4>
+										<span>03</span>
+									</a>
+								</li>
+								<li>
+									<a href="#">
+										<svg
+											width="20"
+											height="19"
+											viewBox="0 0 20 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z"
+												fill="#D9D9D9"
+												fill-opacity="0.48"
+											/>
+										</svg>
+
+										<h4>Curated <br />Playlists</h4>
+										<span>04</span>
+									</a>
+								</li>
+								<li>
+									<a href="#">
+										<svg
+											width="20"
+											height="19"
+											viewBox="0 0 20 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z"
+												fill="#D9D9D9"
+												fill-opacity="0.48"
+											/>
+										</svg>
+
+										<h4>Monetized <br />Streaming</h4>
+										<span>05</span>
+									</a>
+								</li>
+								<li>
+									<a href="#">
+										<svg
+											width="20"
+											height="19"
+											viewBox="0 0 20 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z"
+												fill="#D9D9D9"
+												fill-opacity="0.48"
+											/>
+										</svg>
+
+										<h4>Music <br />Insights</h4>
+										<span>06</span>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- Stream Section -->
+					<div class="stream-wrapper">
+						<div class="stream-content">
+							<div class="img-wrapper">
+								<img
+									src="/assets/img/stream-vibe-img.png"
+									alt=""
+								/>
+							</div>
+
+							<div class="text-content">
+								<h2>Stream <br />Play. Vibe.</h2>
+								<div class="tags-wrapper">
+									<span>Explore Songs</span>
+									<span>Create Playlists</span>
+									<span>Enjoy Music</span>
+								</div>
+								<p>
+									Immerse yourself in a word of endless
+									music.Discover songs you love, create
+									personalized playlists, and let the rhythm
+									take over. Whether you're working, relaxing
+									or on the move, the perfect vibe is just a
+									play away.
+								</p>
+
+								<a href="{% url 'signup' %}">Get Started</a>
+							</div>
+						</div>
+					</div>
+
+					<!-- Playlist Section -->
+					<div class="playlist-wrapper">
+						<h5>NUVIA</h5>
+						<div class="playlist-content">
+							<div class="text-content">
+								<h2>
+									Make your music your world with endless
+									songs and perfect playlists.
+								</h2>
+
+								<div class="meta">
+									<svg
+										width="30"
+										height="30"
+										viewBox="0 0 30 30"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											d="M3 20.5263H27V3.15789H3V20.5263ZM16.5 23.6842V26.8421H22.5V30H7.5V26.8421H13.5V23.6842H1.4877C0.666075 23.6842 0 22.9754 0 22.0934V1.59076C0 0.712216 0.682965 0 1.4877 0H28.5123C29.334 0 30 0.708821 30 1.59076V22.0934C30 22.9719 29.317 23.6842 28.5123 23.6842H16.5Z"
+											fill="#E6E5E6"
+										/>
+									</svg>
+									<svg
+										width="30"
+										height="30"
+										viewBox="0 0 30 30"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											d="M15 30C6.71572 30 0 23.2842 0 15C0 6.71572 6.71572 0 15 0C23.2842 0 30 6.71572 30 15C30 23.2842 23.2842 30 15 30ZM15 27C21.6275 27 27 21.6275 27 15C27 8.37258 21.6275 3 15 3C8.37258 3 3 8.37258 3 15C3 21.6275 8.37258 27 15 27ZM12.9328 9.62189L20.2512 14.5008C20.5269 14.6846 20.6014 15.0571 20.4175 15.3328C20.3736 15.3987 20.3171 15.4552 20.2512 15.4992L12.9328 20.3781C12.6571 20.562 12.2845 20.4874 12.1008 20.2118C12.0351 20.1132 12 19.9974 12 19.8789V10.1211C12 9.78973 12.2686 9.52112 12.6 9.52112C12.7185 9.52112 12.8343 9.55617 12.9328 9.62189Z"
+											fill="#E6E5E6"
+										/>
+									</svg>
+									<svg
+										width="30"
+										height="30"
+										viewBox="0 0 30 30"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											d="M15 2.85714C12.4659 2.85714 10.4118 4.77593 10.4118 7.14286V15.7143C10.4118 18.0813 12.4659 20 15 20C17.5339 20 19.5882 18.0813 19.5882 15.7143V7.14286C19.5882 4.77593 17.5339 2.85714 15 2.85714ZM15 0C19.2233 0 22.6471 3.19797 22.6471 7.14286V15.7143C22.6471 19.6591 19.2233 22.8571 15 22.8571C10.7766 22.8571 7.35294 19.6591 7.35294 15.7143V7.14286C7.35294 3.19797 10.7766 0 15 0ZM0 18.5164L3 17.956C4.11538 23.1944 9.06404 27.1429 15 27.1429C20.936 27.1429 25.8845 23.1944 26.9999 17.956L30 18.5164C28.6056 25.0646 22.4199 30 15 30C7.58006 30 1.39424 25.0646 0 18.5164Z"
+											fill="#E6E5E6"
+										/>
+									</svg>
+									<svg
+										width="30"
+										height="30"
+										viewBox="0 0 30 30"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											d="M15 10.5C12.5139 10.5 10.5 12.5147 10.5 15C10.5 17.486 12.5147 19.5 15 19.5C17.486 19.5 19.5 17.4853 19.5 15C19.5 12.514 17.4854 10.5 15 10.5ZM15 7.5C19.1406 7.5 22.5 10.8556 22.5 15C22.5 19.1408 19.1444 22.5 15 22.5C10.8593 22.5 7.49999 19.1444 7.49999 15C7.49999 10.8593 10.8556 7.5 15 7.5ZM24.75 7.12372C24.75 8.15889 23.9088 8.99875 22.875 8.99875C21.8399 8.99875 21 8.1576 21 7.12372C21 6.08985 21.8411 5.25 22.875 5.25C23.9075 5.24869 24.75 6.08985 24.75 7.12372ZM15 3C11.2883 3 10.6833 3.00982 8.95693 3.0867C7.78075 3.14191 6.99232 3.3001 6.25976 3.5845C5.60876 3.83698 5.13916 4.13847 4.63881 4.63882C4.13653 5.1411 3.83559 5.60945 3.58413 6.26075C3.29907 6.99498 3.14092 7.78217 3.0867 8.95673C3.00907 10.6128 3 11.1916 3 15C3 18.7118 3.00982 19.3167 3.08668 21.0429C3.14193 22.2186 3.30033 23.0082 3.58404 23.739C3.83718 24.3909 4.13928 24.8616 4.63722 25.3596C5.14147 25.8632 5.61121 26.1651 6.25633 26.4141C6.99781 26.7008 7.78574 26.8591 8.9567 26.9133C10.6128 26.9909 11.1916 27 15 27C18.7118 27 19.3167 26.9901 21.0429 26.9133C22.2161 26.8582 23.0063 26.6994 23.739 26.4159C24.3891 26.1634 24.8613 25.8603 25.3596 25.3628C25.8639 24.8577 26.1653 24.3891 26.4146 23.7425C26.7005 23.0037 26.8592 22.2147 26.9133 21.0434C26.9909 19.3872 27 18.8083 27 15C27 11.2883 26.9901 10.6833 26.9133 8.95706C26.8581 7.78359 26.6993 6.99224 26.4155 6.25977C26.1636 5.61057 25.8611 5.13952 25.3611 4.63882C24.858 4.13572 24.3909 3.8354 23.7392 3.58413C23.0055 3.29931 22.2171 3.14094 21.0432 3.08671C19.3872 3.00907 18.8084 3 15 3ZM15 0C19.0749 0 19.5837 0.0149999 21.1838 0.0899999C22.7799 0.163755 23.8688 0.41625 24.825 0.7875C25.8137 1.16876 26.6487 1.68375 27.4824 2.51749C28.3149 3.35125 28.83 4.18875 29.2125 5.175C29.5824 6.13 29.835 7.22 29.91 8.81625C29.9813 10.4163 30 10.925 30 15C30 19.0751 29.985 19.5837 29.91 21.1838C29.8362 22.78 29.5824 23.8687 29.2125 24.825C28.8312 25.8138 28.3149 26.6487 27.4824 27.4825C26.6487 28.315 25.8099 28.83 24.825 29.2125C23.8688 29.5826 22.7799 29.835 21.1838 29.91C19.5837 29.9813 19.0749 30 15 30C10.925 30 10.4162 29.985 8.81624 29.91C7.21999 29.8362 6.13249 29.5826 5.175 29.2125C4.18749 28.8312 3.35124 28.315 2.51749 27.4825C1.68375 26.6487 1.17 25.81 0.787499 24.825C0.41625 23.8687 0.165 22.78 0.0900002 21.1838C0.0187503 19.5837 0 19.0751 0 15C0 10.925 0.0150003 10.4163 0.0900002 8.81625C0.16374 7.21875 0.41625 6.13125 0.787499 5.175C1.16874 4.1875 1.68375 3.35125 2.51749 2.51749C3.35124 1.68375 4.18875 1.17 5.175 0.7875C6.13124 0.41625 7.21874 0.165 8.81624 0.0899999C10.4162 0.0187499 10.925 0 15 0Z"
+											fill="#E6E5E6"
+										/>
+									</svg>
+								</div>
+
+								<span>Join millions of listeners today!</span>
+							</div>
+
+							<div class="stats">
+								<span>10M+</span>
+								<span>500K+</span>
+								<span>4.8+</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Faq Section -->
+					<div class="faq-wrapper">
+						<div class="faq-content">
+							<h2>FAQ<span>s</span></h2>
+
+							<ul>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>How do I register on Nuvia?</h3>
+										<p>
+											Joining Nuvia is easy! Simply
+											contact one of our verified
+											Subscription merchants to purchase
+											N-coin for registration.
+										</p>
+									</div>
+								</li>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>
+											Do I need a referral to get paid?
+										</h3>
+										<p>
+											No, you don't need to refer anyone
+											to get paid on Nuvia.
+										</p>
+									</div>
+								</li>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>
+											How will I receive my streaming
+											revenues?
+										</h3>
+										<p>
+											Streaming revenues can be received
+											via bank transfer, USDT wallet, or
+											PayPal.
+										</p>
+									</div>
+								</li>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>
+											How can I start streaming music?
+										</h3>
+										<p>
+											You can start streaming music as
+											soon as you register.
+										</p>
+									</div>
+								</li>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>
+											What subscription plans do you
+											offer?
+										</h3>
+										<p>
+											We offer both basic and premium
+											subscription plans.
+										</p>
+									</div>
+								</li>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>
+											What should I do if I'm having
+											trouble streaming?
+										</h3>
+										<p>
+											If you encounter streaming issues,
+											contact our customer care team for a
+											swift resolution.
+										</p>
+									</div>
+								</li>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>
+											Can I download songs for offline
+											listening?
+										</h3>
+										<p>
+											Yes, with our premium subscription
+											plan, you can download and listen to
+											songs offline.
+										</p>
+									</div>
+								</li>
+								<li>
+									<b>+</b>
+									<div class="info">
+										<h3>
+											Can I listen to music on multiple
+											devices?
+										</h3>
+										<p>
+											Yes, you can access your Nuvia
+											account on different devices.
+										</p>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<script>
+					const heroWrapper =
+						document.querySelector(".slide-wrapper");
+					const slideItems = document.querySelectorAll(
+						".slide-wrapper .items"
+					);
+					let currentSlider = 1;
+
+					console.log(slideItems);
+
+					setInterval(() => {
+						doSlider();
+					}, 6000);
+
+					const doSlider = () => {
+						let currentItem;
+						let nextItem;
+
+						console.log("currentSlider: ", currentSlider);
+
+						if (currentSlider < slideItems.length) {
+							currentItem = slideItems[currentSlider - 1];
+							nextItem = slideItems[currentSlider];
+							currentSlider += 1;
+						} else {
+							currentItem = slideItems[slideItems.length - 1];
+							nextItem = slideItems[0];
+							currentSlider = 1;
+						}
+
+						console.log("currentItem: ", currentItem);
+						console.log("nextItem: ", nextItem);
+
+						nextItem.style.display = "block";
+						setTimeout(() => {
+							currentItem.style.right = "100%";
+							nextItem.style.right = "0%";
+						}, 100);
+
+						setTimeout(() => {
+							currentItem.style.display = "none";
+							currentItem.style.right = "-100%";
+						}, 500);
+					};
+				</script>
+
+				<script>
+					const faq_list =
+						document.querySelectorAll(".faq-wrapper ul li");
+
+					faq_list.forEach((item) => {
+						item.addEventListener("click", (e) => {
+							e.preventDefault();
+
+							if (item.classList.contains("active")) {
+								item.querySelector("b").textContent = "+";
+								item.querySelector("p").style.display = "none";
+								item.classList.remove("active");
+							} else {
+								item.querySelector("b").textContent = "-";
+								item.querySelector("p").style.display = "block";
+								item.classList.add("active");
+							}
+						});
+					});
+				</script>
+				<style>
+					footer {
+						padding: 100px 8%;
+						background-image: url("/assets/img/footer-overlay-img.png");
+						background-size: cover;
+						background-repeat: no-repeat;
+					}
+					footer .footer-content {
+						display: flex;
+						flex-direction: column;
+						gap: 20px;
+						width: 100%;
+						max-width: 1240px;
+					}
+					footer .footer-content .unleash {
+						display: flex;
+						flex-direction: column;
+						gap: 10px;
+						max-width: 100px;
+					}
+					footer .footer-content .unleash span {
+						font-size: 50px;
+						font-weight: 700;
+						color: #911a1f;
+					}
+					footer .footer-content .unleash p {
+						font-size: 14px;
+						font-weight: 600;
+						color: #fff;
+					}
+					footer .footer-content .contact p {
+						font-size: 24px;
+						font-weight: 600;
+						color: #fff;
+					}
+					footer .footer-content .social {
+						display: flex;
+						align-items: center;
+						gap: 10px;
+					}
+					footer .footer-content .social li a {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						height: 30px;
+						width: 30px;
+						border-radius: 4px;
+						border: 1px solid #ffffff9e;
+					}
+					footer .footer-content .social li a svg {
+						height: 15px;
+					}
+					@media screen and (min-width: 800px) {
+						footer .footer-content {
+							flex-direction: row;
+							justify-content: space-between;
+							align-items: center;
+						}
+					}
+				</style>
+			</div>
+		</div>
+		<!-- wrapper -->
+		<footer>
+			<div class="footer-content">
+				<div class="unleash">
+					<span>13</span>
+					<p>Unleash your sound track track for life.</p>
+				</div>
+
+				<div class="contact">
+					<p>
+						GET IN <br />
+						TOUCH
+					</p>
+				</div>
+
+				<div class="social">
+					<li>
+						<a
+							href="https://www.instagram.com/nuviastream?igsh=MWV5YTExazA5bnVzag=="
+						>
+							<svg
+								viewBox="0 0 34 35"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M17.0026 12.5C14.2403 12.5 12.0026 14.7385 12.0026 17.5C12.0026 20.2622 14.2411 22.5 17.0026 22.5C19.7648 22.5 22.0026 20.2615 22.0026 17.5C22.0026 14.7379 19.7641 12.5 17.0026 12.5ZM17.0026 9.16671C21.6033 9.16671 25.336 12.8952 25.336 17.5C25.336 22.1009 21.6075 25.8334 17.0026 25.8334C12.4018 25.8334 8.66927 22.1049 8.66927 17.5C8.66927 12.8993 12.3978 9.16671 17.0026 9.16671ZM27.836 8.74862C27.836 9.89881 26.9013 10.832 25.7526 10.832C24.6025 10.832 23.6693 9.89737 23.6693 8.74862C23.6693 7.59987 24.6038 6.66671 25.7526 6.66671C26.8998 6.66526 27.836 7.59987 27.836 8.74862ZM17.0026 4.16671C12.8785 4.16671 12.2063 4.17762 10.2881 4.26304C8.98122 4.32439 8.10519 4.50016 7.29124 4.81616C6.5679 5.09669 6.04612 5.43167 5.49017 5.98762C4.93209 6.54571 4.5977 7.06609 4.3183 7.78976C4.00157 8.60557 3.82585 9.48022 3.7656 10.7853C3.67935 12.6254 3.66927 13.2685 3.66927 17.5C3.66927 21.6242 3.68019 22.2964 3.76559 24.2144C3.82697 25.5207 4.00297 26.398 4.3182 27.21C4.59947 27.9344 4.93514 28.4574 5.4884 29.0107C6.04869 29.5702 6.57062 29.9057 7.28742 30.1824C8.11129 30.5009 8.98677 30.6769 10.2878 30.737C12.1279 30.8232 12.771 30.8334 17.0026 30.8334C21.1268 30.8334 21.799 30.8224 23.717 30.737C25.0205 30.6759 25.8985 30.4994 26.7126 30.1844C27.435 29.9039 27.9596 29.567 28.5133 29.0142C29.0736 28.453 29.4085 27.9324 29.6855 27.2139C30.0031 26.393 30.1795 25.5164 30.2396 24.2149C30.3258 22.3747 30.336 21.7315 30.336 17.5C30.336 13.3759 30.325 12.7037 30.2396 10.7857C30.1783 9.48181 30.0018 8.60252 29.6865 7.78867C29.4066 7.06734 29.0705 6.54396 28.515 5.98762C27.956 5.42862 27.437 5.09492 26.7128 4.81574C25.8976 4.49927 25.0216 4.32331 23.7173 4.26306C21.8773 4.17679 21.2341 4.16671 17.0026 4.16671ZM17.0026 0.833374C21.5303 0.833374 22.0956 0.850041 23.8735 0.933374C25.647 1.01532 26.8568 1.29587 27.9193 1.70837C29.0178 2.13199 29.9456 2.70421 30.872 3.63059C31.797 4.55699 32.3693 5.48754 32.7943 6.58337C33.2053 7.64449 33.486 8.85559 33.5693 10.6292C33.6485 12.407 33.6693 12.9723 33.6693 17.5C33.6693 22.0279 33.6526 22.593 33.5693 24.3709C33.4873 26.1445 33.2053 27.3542 32.7943 28.4167C32.3706 29.5154 31.797 30.443 30.872 31.3695C29.9456 32.2945 29.0136 32.8667 27.9193 33.2917C26.8568 33.7029 25.647 33.9834 23.8735 34.0667C22.0956 34.1459 21.5303 34.1667 17.0026 34.1667C12.4748 34.1667 11.9095 34.15 10.1318 34.0667C8.35815 33.9847 7.14982 33.7029 6.08594 33.2917C4.9887 32.868 4.05954 32.2945 3.13315 31.3695C2.20677 30.443 1.63594 29.5112 1.21094 28.4167C0.798438 27.3542 0.519271 26.1445 0.435938 24.3709C0.356771 22.593 0.335938 22.0279 0.335938 17.5C0.335938 12.9723 0.352604 12.407 0.435938 10.6292C0.517871 8.85421 0.798438 7.64587 1.21094 6.58337C1.63454 5.48616 2.20677 4.55699 3.13315 3.63059C4.05954 2.70421 4.9901 2.13337 6.08594 1.70837C7.14844 1.29587 8.35677 1.01671 10.1318 0.933374C11.9095 0.854207 12.4748 0.833374 17.0026 0.833374Z"
+									fill="white"
+								/>
+							</svg>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<svg
+								viewBox="0 0 30 31"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M18.3333 27.1667H26.6667V3.83333H3.33333V27.1667H15V18.8333H11.6667V15.5H15V12.743C15 10.5143 15.232 9.70603 15.6678 8.89122C16.1037 8.0764 16.743 7.43693 17.5578 7.00117C18.1957 6.66007 18.987 6.4542 20.3695 6.3659C20.9183 6.33085 21.6285 6.37555 22.5 6.5V9.66667H21.6667C20.1378 9.66667 19.507 9.73887 19.1298 9.94055C18.896 10.0656 18.7323 10.2293 18.6072 10.4632C18.4055 10.8403 18.3333 11.2142 18.3333 12.743V15.5H22.5L21.6667 18.8333H18.3333V27.1667ZM1.66667 0.5H28.3333C29.2538 0.5 30 1.2462 30 2.16667V28.8333C30 29.7538 29.2538 30.5 28.3333 30.5H1.66667C0.7462 30.5 0 29.7538 0 28.8333V2.16667C0 1.2462 0.7462 0.5 1.66667 0.5Z"
+									fill="white"
+								/>
+							</svg>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<svg
+								viewBox="0 0 34 35"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M17.0026 34.1667C7.79785 34.1667 0.335938 26.7047 0.335938 17.5C0.335938 8.29529 7.79785 0.833374 17.0026 0.833374C26.2073 0.833374 33.6693 8.29529 33.6693 17.5C33.6693 26.7047 26.2073 34.1667 17.0026 34.1667ZM13.186 30.279C11.5817 26.8765 10.5981 23.1237 10.3815 19.1667H3.77242C4.4326 24.4609 8.19659 28.7912 13.186 30.279ZM13.7204 19.1667C13.9711 23.2314 15.1323 27.0495 17.0026 30.42C18.8729 27.0495 20.0341 23.2314 20.2848 19.1667H13.7204ZM30.2328 19.1667H23.6238C23.4071 23.1237 22.4236 26.8765 20.8193 30.279C25.8086 28.7912 29.5726 24.4609 30.2328 19.1667ZM3.77242 15.8334H10.3815C10.5981 11.8763 11.5817 8.12349 13.186 4.72097C8.19659 6.20892 4.4326 10.5392 3.77242 15.8334ZM13.7204 15.8334H20.2848C20.0341 11.7687 18.8729 7.95046 17.0026 4.58002C15.1323 7.95046 13.9711 11.7687 13.7204 15.8334ZM20.8193 4.72097C22.4236 8.12349 23.4071 11.8763 23.6238 15.8334H30.2328C29.5726 10.5392 25.8086 6.20892 20.8193 4.72097Z"
+									fill="white"
+								/>
+							</svg>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<svg
+								viewBox="0 0 34 29"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									d="M23.5806 3.75008C20.9442 3.75008 18.7951 5.86348 18.7481 8.4943L18.7012 11.1194C18.6914 11.6715 18.2357 12.1112 17.6836 12.1013C17.6442 12.1007 17.6051 12.0977 17.5662 12.0923L14.9649 11.7377C11.5424 11.2708 8.26212 9.6956 5.11527 7.07351C4.11865 12.5897 6.06407 16.412 10.7531 19.36L13.6648 21.1903C14.1323 21.4843 14.2731 22.1017 13.9791 22.5692C13.9118 22.6763 13.8247 22.7698 13.7225 22.8445L11.0697 24.7827C12.647 24.8817 14.1464 24.8125 15.3891 24.5645C23.2517 22.9955 28.4802 17.0783 28.4802 7.31848C28.4802 6.52166 26.7931 3.75008 23.5806 3.75008ZM15.4152 8.43483C15.4946 3.99306 19.1199 0.416748 23.5806 0.416748C25.8527 0.416748 27.9082 1.34471 29.3887 2.84233C30.5744 2.83342 31.5831 3.13318 33.8366 1.76611C33.2796 4.50008 33.0031 5.68668 31.8136 7.31848C31.8136 20.0543 23.9851 26.2482 16.0414 27.8333C10.5952 28.9203 2.67483 27.1358 0.40625 24.7645C1.56197 24.6757 6.26287 24.17 8.97898 22.182C6.68063 20.6645 -2.46698 15.2802 3.5436 0.810698C6.36605 4.10511 9.22735 6.34758 12.1275 7.5381C14.0565 8.32996 14.5304 8.31416 15.4152 8.43483Z"
+									fill="white"
+								/>
+							</svg>
+						</a>
+					</li>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>
