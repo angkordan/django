@@ -24,7 +24,7 @@ def signup(request):
             if code == 'TEMMY':
                 return redirect('https://paystack.shop/pay/nuvia_premium-disc')
             else:
-                return redirect('https://paystack.shop/pay/nuvia_Premium')
+                return redirect('https://paystack.shop/pay/nuvia_premium')
 
     return render(request, 'signup.html')
 
