@@ -14,20 +14,15 @@ def signup(request):
 
     if request.method =="POST":
         """Configure form submit action"""
+        code = request.POST['code'].upper()
         if request.POST['user_package'] == 'basic':
-            if request.POST['code'] == 'TEMMY':
-                return redirect('https://paystack.shop/pay/nuvia_basic-dis')
-            elif request.POST['code'] != 'TEMMY':
-                messages.info(request, 'Invalid Code')
-                return redirect('signup')
+            if code == 'TEMMY':
+                return redirect('https://paystack.shop/pay/nuvia_basic-disc')
             else:
-                return redirect('https://paystack.shop/pay/nuvia_Basic')
+                return redirect('https://paystack.shop/pay/nuvia_basic')
         elif request.POST['user_package'] == 'premium':
-            if request.POST['code'] == 'TEMMY':
-                return redirect('https://paystack.shop/pay/nuvia_Prem-dis')
-            elif request.POST['code'] != 'TEMMY':
-                messages.info(request, 'Invalid Code')
-                return redirect('signup')
+            if code == 'TEMMY':
+                return redirect('https://paystack.shop/pay/nuvia_premium-disc')
             else:
                 return redirect('https://paystack.shop/pay/nuvia_Premium')
 

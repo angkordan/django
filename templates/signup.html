@@ -235,7 +235,7 @@
 			<div class="form-wrapper">
 				<form
 					class="form-container"
-					method="post"
+					method="POST"
 					action="{% url 'signup' %}"
 				>
 					{% csrf_token %}
@@ -294,7 +294,7 @@
 					<div class="input-sec">
 						<input
 							name="user_password"
-							:type="type"
+							type="password"
 							placeholder="Enter password"
 						/>
 						<button
